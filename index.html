@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <!-- The URL carries an OAuth code: never leak it through the Referer header. -->
+  <meta name="referrer" content="no-referrer">
+  <title>Bagatela — retorno do Mercado Livre</title>
+  <style>
+    :root { color-scheme: light dark; --bg:#f8fafc; --card:#fff; --ink:#172033; --muted:#64748b; --line:#e2e8f0; --brand:#15803d; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#0f172a; --card:#172033; --ink:#f1f5f9; --muted:#94a3b8; --line:#263248; --brand:#22c55e; } }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:16px; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { width:100%; max-width:560px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:24px; }
+    h1 { font-size:1.25rem; margin:16px 0 8px; }
+    p { margin:0 0 12px; color:var(--muted); }
+    ol { margin:0 0 16px; padding-left:20px; color:var(--muted); }
+    textarea { width:100%; min-height:96px; padding:10px; border:1px solid var(--line); border-radius:10px; background:transparent; color:var(--ink); font:13px/1.4 ui-monospace, Consolas, monospace; word-break:break-all; resize:vertical; }
+    button { margin-top:12px; padding:10px 16px; border:0; border-radius:10px; background:var(--brand); color:#fff; font-weight:600; cursor:pointer; }
+    .error { color:#dc2626; }
+    [hidden] { display:none !important; }
+  </style>
+</head>
+<body>
+  <main>
+    <svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true">
+      <rect width="64" height="64" rx="16" fill="#16A34A"/>
+      <path d="M14 14.25a4.25 4.25 0 0 1 8.5 0V54.5H14Z" fill="#fff"/>
+      <circle cx="34" cy="38" r="16.5" fill="#fff"/>
+      <circle cx="34" cy="38" r="4.75" fill="#F97316"/>
+    </svg>
+
+    <section id="ok" hidden>
+      <h1>Autorização recebida</h1>
+      <ol>
+        <li>Copie o endereço abaixo.</li>
+        <li>No painel do Bagatela, vá em <strong>Marketplaces → Mercado Livre → “O retorno do Mercado Livre não abriu?”</strong>.</li>
+        <li>Cole e clique em <strong>Concluir conexão</strong> (faça isso em poucos minutos — o código expira).</li>
+      </ol>
+      <textarea id="url" readonly aria-label="Endereço de retorno"></textarea>
+      <button id="copy" type="button">Copiar endereço</button>
+      <p id="copied" hidden>Copiado.</p>
+    </section>
+
+    <section id="denied" hidden>
+      <h1 class="error">Autorização não concluída</h1>
+      <p id="reason"></p>
+      <p>Volte ao painel do Bagatela e clique em “Conectar conta” novamente.</p>
+    </section>
+
+    <section id="empty" hidden>
+      <h1>Página de retorno do Bagatela</h1>
+      <p>Esta página só é usada durante a conexão com o Mercado Livre. Inicie pelo painel do Bagatela.</p>
+    </section>
+  </main>
+
+  <script>
+    // Runs only in this tab: nothing is sent anywhere.
+    var params = new URLSearchParams(location.search);
+    var show = function (id) { document.getElementById(id).hidden = false; };
+    if (params.get("code")) {
+      show("ok");
+      var field = document.getElementById("url");
+      field.value = location.href;
+      document.getElementById("copy").addEventListener("click", function () {
+        field.select();
+        var done = function () { document.getElementById("copied").hidden = false; };
+        if (navigator.clipboard) navigator.clipboard.writeText(field.value).then(done, function () { document.execCommand("copy"); done(); });
+        else { document.execCommand("copy"); done(); }
+      });
+    } else if (params.get("error")) {
+      show("denied");
+      document.getElementById("reason").textContent = params.get("error_description") || params.get("error");
+    } else {
+      show("empty");
+    }
+  </script>
+</body>
+</html>
